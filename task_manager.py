@@ -357,7 +357,7 @@ def main():
                     if task[12]:  # Completed task
                         st.markdown(f"### ✅ ~~{CATEGORIES[task[3]]} {task[1]}~~")
                         st.caption(f"**Completed on:** {task[7]}")
-                else:
+                if not task[12]:
                     st.markdown(f"### {CATEGORIES[task[3]]} {task[1]}")
                 st.caption(f"**Category:** {task[3]}")
                 if task[4]: st.caption(f"**Project:** {task[4]}")
