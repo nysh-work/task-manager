@@ -716,6 +716,7 @@ def main():
                 if note[2]:
                     st.audio(note[2], format='audio/wav')
         
+        # Statistics
         # Completion rate
         total_tasks = c.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
         completed_tasks = c.execute("SELECT COUNT(*) FROM tasks WHERE completed = 1").fetchone()[0]
