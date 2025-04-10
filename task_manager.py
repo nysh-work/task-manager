@@ -676,18 +676,28 @@ def main():
         if st.button("Start Recording"):
             try:
                 st.warning("Recording... Click Stop when done")
-                # Use Streamlit's audio recorder component
-                audio_bytes = st.audio("recording.wav", format="audio/wav")
+                # Create a unique filename for each recording
+                recording_file = f"voice_note_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+                # Use Streamlit's audio recorder component with proper file handling
+                audio_bytes = st.audio(recording_file, format="audio/wav")
                 if audio_bytes:
+                    # Read the audio file data
+                    with open(recording_file, "rb") as f:
+                        audio_data = f.read()
                     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
-                              (title, audio_bytes, created_at))
+                              (title, audio_data, created_at))
                     conn.commit()
+                    # Clean up the temporary file
+                    os.remove(recording_file)
                     st.success(f"Voice note '{title}' saved")
                 else:
                     st.error("No audio data recorded. Please try again.")
             except Exception as e:
                 st.error(f"Failed to record audio: {str(e)}")
+                # Clean up if file was created but operation failed
+                if 'recording_file' in locals() and os.path.exists(recording_file):
+                    os.remove(recording_file)
         
         # Display existing voice notes
         notes = c.execute("SELECT * FROM voice_notes ORDER BY created_at DESC").fetchall()
