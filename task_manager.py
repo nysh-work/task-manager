@@ -5,6 +5,7 @@ import plotly.express as px
 import requests
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
+import os
 
 
 # Initialize database
@@ -69,6 +70,11 @@ c.execute('''CREATE TABLE IF NOT EXISTS voice_notes
               audio_data BLOB,
               transcript TEXT,
               created_at TEXT)''')
+
+# Create directory for voice notes if it doesn't exist
+voice_notes_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voice_notes')
+if not os.path.exists(voice_notes_dir):
+    os.makedirs(voice_notes_dir)
 
 
 
