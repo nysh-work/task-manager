@@ -708,15 +708,6 @@ def main():
         audio_bytes = None
         title = st.text_input("Note Title", key=f"voice_note_title_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
         
-        
-                else:
-                    st.error("No audio data recorded. Please try again.")
-            except Exception as e:
-                st.error(f"Failed to record audio: {str(e)}")
-                # Clean up if file was created but operation failed
-                if 'recording_file' in locals() and os.path.exists(recording_file):
-                    os.remove(recording_file)
-        
         # Display existing voice notes
         notes = c.execute("SELECT * FROM voice_notes ORDER BY created_at DESC").fetchall()
         for note in notes:
