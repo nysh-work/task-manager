@@ -678,22 +678,16 @@ def main():
         st.caption("Record and manage your voice memos.")
         
         # Voice recording functionality
-        audio_bytes = mic_recorder(start_prompt="Start recording", stop_prompt="Stop recording", key="recorder")
+        audio_data = mic_recorder(start_prompt="Start recording", stop_prompt="Stop recording", key="recorder")
         
-        if audio_bytes:
-            st.audio(audio_bytes, format="audio/wav")
+        if audio_data and 'bytes' in audio_data:
+            st.audio(audio_data['bytes'], format="audio/wav")
             if st.button("Save Voice Note"):
                 title = st.text_input("Note Title")
                 if title:
                     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    # Ensure audio_bytes is in correct format before saving
-                    if isinstance(audio_bytes, dict):
-                        audio_bytes = audio_bytes.get('bytes', b'')
-                    elif not isinstance(audio_bytes, bytes):
-                        audio_bytes = bytes(audio_bytes)
-                    
                     c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
-                              (title, audio_bytes, created_at))
+                              (title, audio_data['bytes'], created_at))
                     conn.commit()
                     st.success("Voice note saved!")
         
