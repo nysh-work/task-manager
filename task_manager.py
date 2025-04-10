@@ -413,8 +413,8 @@ def main():
         st.subheader("Task Timeline View")
         st.caption("Visualize your tasks on a timeline to understand deadlines and workload.")
         
-        # Get all incomplete tasks with due dates
-        tasks = c.execute("SELECT id, title, category, due_date FROM tasks WHERE completed = 0 AND due_date IS NOT NULL").fetchall()
+        # Get all tasks with due dates (both completed and incomplete)
+        tasks = c.execute("SELECT id, title, category, due_date, completed FROM tasks WHERE due_date IS NOT NULL").fetchall()
         
         if tasks:
             # Prepare data for Gantt chart
@@ -424,8 +424,18 @@ def main():
                     "Task": f"{CATEGORIES[task[2]]} {task[1]}",
                     "Start": datetime.strptime(datetime.now().strftime("%Y-%m-%d"), "%Y-%m-%d"),
                     "End": datetime.strptime(task[3], "%Y-%m-%d"),
-                    "Category": task[2]
+                    "Category": task[2],
+                    "Completed": bool(task[4])
                 })
+            
+            # Color map for completed vs incomplete tasks
+            color_discrete_map = {
+                "Work": "#2ecc71",
+                "Studies": "#3498db",
+                "Personal": "#9b59b6",
+                "Media": "#e67e22",
+                "Misc": "#34495e"
+            }
             
             # Create Gantt chart
             fig = px.timeline(
@@ -434,8 +444,17 @@ def main():
                 x_end="End",
                 y="Task",
                 color="Category",
-                title="Task Timeline"
+                title="Task Timeline",
+                color_discrete_map=color_discrete_map,
+                opacity=0.7
             )
+            
+            # Style completed tasks differently
+            for i, task in enumerate(tasks_data):
+                if task["Completed"]:
+                    fig.data[0].marker.line.width[i] = 0
+                    fig.data[0].marker.opacity[i] = 0.3
+            
             fig.update_yaxes(autorange="reversed")
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -655,15 +674,20 @@ def main():
         title = st.text_input("Note Title")
         
         if st.button("Start Recording"):
-            st.warning("Recording... Click Stop when done")
-            audio_bytes = st.audio("recording.wav")
-            
-        if st.button("Stop Recording") and audio_bytes:
-            created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
-                      (title, audio_bytes, created_at))
-            conn.commit()
-            st.success(f"Voice note '{title}' saved")
+            try:
+                st.warning("Recording... Click Stop when done")
+                # Use Streamlit's audio recorder component
+                audio_bytes = st.audio("recording.wav", format="audio/wav")
+                if audio_bytes:
+                    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
+                              (title, audio_bytes, created_at))
+                    conn.commit()
+                    st.success(f"Voice note '{title}' saved")
+                else:
+                    st.error("No audio data recorded. Please try again.")
+            except Exception as e:
+                st.error(f"Failed to record audio: {str(e)}")
         
         # Display existing voice notes
         notes = c.execute("SELECT * FROM voice_notes ORDER BY created_at DESC").fetchall()
