@@ -686,6 +686,12 @@ def main():
                 title = st.text_input("Note Title")
                 if title:
                     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    # Ensure audio_bytes is in correct format before saving
+                    if isinstance(audio_bytes, dict):
+                        audio_bytes = audio_bytes.get('bytes', b'')
+                    elif not isinstance(audio_bytes, bytes):
+                        audio_bytes = bytes(audio_bytes)
+                    
                     c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
                               (title, audio_bytes, created_at))
                     conn.commit()
