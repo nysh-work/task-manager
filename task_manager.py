@@ -320,31 +320,32 @@ def main():
         st.caption("Browse and manage your tasks. Filter by category, project, area or resource.")
         
         view_option = st.radio("View by:", ["All", "Category", "Project", "Area", "Resource", "Search"])
+        show_completed = st.checkbox("Show completed tasks")
         
         if view_option == "All":
-            tasks = c.execute("SELECT * FROM tasks WHERE completed = 0").fetchall()
+            tasks = c.execute("SELECT * FROM tasks WHERE completed = ?", (0 if not show_completed else 1,)).fetchall()
         elif view_option == "Category":
             selected_category = st.selectbox("Select Category", CATEGORIES)
-            tasks = c.execute("SELECT * FROM tasks WHERE category = ? AND completed = 0", (selected_category,)).fetchall()
+            tasks = c.execute("SELECT * FROM tasks WHERE category = ? AND completed = ?", (selected_category, 0 if not show_completed else 1)).fetchall()
         elif view_option == "Project":
             projects = [item[0] for item in c.execute("SELECT DISTINCT project FROM tasks WHERE project IS NOT NULL").fetchall()]
             selected_project = st.selectbox("Select Project", projects)
-            tasks = c.execute("SELECT * FROM tasks WHERE project = ? AND completed = 0", (selected_project,)).fetchall()
+            tasks = c.execute("SELECT * FROM tasks WHERE project = ? AND completed = ?", (selected_project, 0 if not show_completed else 1)).fetchall()
         elif view_option == "Area":
             areas = [item[0] for item in c.execute("SELECT DISTINCT area FROM tasks WHERE area IS NOT NULL").fetchall()]
             selected_area = st.selectbox("Select Area", areas)
-            tasks = c.execute("SELECT * FROM tasks WHERE area = ? AND completed = 0", (selected_area,)).fetchall()
+            tasks = c.execute("SELECT * FROM tasks WHERE area = ? AND completed = ?", (selected_area, 0 if not show_completed else 1)).fetchall()
         elif view_option == "Resource":
             resources = [item[0] for item in c.execute("SELECT DISTINCT resource FROM tasks WHERE resource IS NOT NULL").fetchall()]
             selected_resource = st.selectbox("Select Resource", resources)
-            tasks = c.execute("SELECT * FROM tasks WHERE resource = ? AND completed = 0", (selected_resource,)).fetchall()
+            tasks = c.execute("SELECT * FROM tasks WHERE resource = ? AND completed = ?", (selected_resource, 0 if not show_completed else 1)).fetchall()
         elif view_option == "Search":
             search_term = st.text_input("Search tasks")
             if search_term:
-                tasks = c.execute("""SELECT * FROM tasks WHERE completed = 0 AND 
+                tasks = c.execute("""SELECT * FROM tasks WHERE completed = ? AND 
                                     (title LIKE ? OR description LIKE ? OR category LIKE ? OR 
                                     project LIKE ? OR area LIKE ? OR resource LIKE ?)""", 
-                                    (f"%{search_term}%", f"%{search_term}%", f"%{search_term}%", 
+                                    (0 if not show_completed else 1, f"%{search_term}%", f"%{search_term}%", f"%{search_term}%", 
                                     f"%{search_term}%", f"%{search_term}%", f"%{search_term}%")).fetchall()
             else:
                 tasks = []
@@ -353,15 +354,19 @@ def main():
             with st.container():
                 col1, col2 = st.columns([0.9, 0.1])
                 with col1:
+                    if task[12]:  # Completed task
+                    st.markdown(f"### ✅ ~~{CATEGORIES[task[3]]} {task[1]}~~")
+                    st.caption(f"**Completed on:** {task[7]}")
+                else:
                     st.markdown(f"### {CATEGORIES[task[3]]} {task[1]}")
-                    st.caption(f"**Category:** {task[3]}")
-                    if task[4]: st.caption(f"**Project:** {task[4]}")
-                    if task[5]: st.caption(f"**Area:** {task[5]}")
-                    if task[6]: st.caption(f"**Resource:** {task[6]}")
-                    st.caption(f"Added: {task[7]}")
-                    if task[8]: st.caption(f"**Due:** {task[8]}")
-                    priority_text = {1: "🔥 High", 2: "⚡ Medium", 3: "🐢 Low"}.get(task[9], "⚡ Medium")
-                    st.caption(f"**Priority:** {priority_text}")
+                st.caption(f"**Category:** {task[3]}")
+                if task[4]: st.caption(f"**Project:** {task[4]}")
+                if task[5]: st.caption(f"**Area:** {task[5]}")
+                if task[6]: st.caption(f"**Resource:** {task[6]}")
+                st.caption(f"Added: {task[7]}")
+                if task[8]: st.caption(f"**Due:** {task[8]}")
+                priority_text = {1: "🔥 High", 2: "⚡ Medium", 3: "🐢 Low"}.get(task[9], "⚡ Medium")
+                st.caption(f"**Priority:** {priority_text}")
                 with col2:
                     st.button("✓", key=f"complete_{task[0]}")
                     if st.button("🗑️", key=f"delete_{task[0]}", on_click=lambda: delete_task(task[0])):
