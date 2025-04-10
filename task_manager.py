@@ -699,7 +699,7 @@ def main():
                 with st.expander(f"{note[1]} - {note[2]}"):
                     audio_data = c.execute("SELECT audio_data FROM voice_notes WHERE id = ?", (note[0],)).fetchone()[0]
                     st.audio(audio_data, format="audio/wav")
-                    if st.button("Delete", key=f"delete_{note[0]}"):
+                    if st.button("Delete", key=f"delete_voice_note_{note[0]}"):
                         c.execute("DELETE FROM voice_notes WHERE id = ?", (note[0],))
                         conn.commit()
                         st.experimental_rerun()
