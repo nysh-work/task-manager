@@ -355,14 +355,14 @@ def main():
                 col1, col2 = st.columns([0.9, 0.1])
                 with col1:
                     if task[12]:  # Completed task
-                    st.markdown(f"### ✅ ~~{CATEGORIES[task[3]]} {task[1]}~~")
-                    st.caption(f"**Completed on:** {task[7]}")
+                        st.markdown(f"### ✅ ~~{CATEGORIES[task[3]]} {task[1]}~~")
+                        st.caption(f"**Completed on:** {task[7]}")
                 else:
                     st.markdown(f"### {CATEGORIES[task[3]]} {task[1]}")
                 st.caption(f"**Category:** {task[3]}")
                 if task[4]: st.caption(f"**Project:** {task[4]}")
                 if task[5]: st.caption(f"**Area:** {task[5]}")
-                if task[6]: st.caption(f"**Resource:** {task[6]}")
+                if task[6] and task[6] != 'None': st.caption(f"**Resource:** {task[6]}")
                 st.caption(f"Added: {task[7]}")
                 if task[8]: st.caption(f"**Due:** {task[8]}")
                 priority_text = {1: "🔥 High", 2: "⚡ Medium", 3: "🐢 Low"}.get(task[9], "⚡ Medium")
@@ -514,7 +514,7 @@ def main():
                         if len(task) > 15 and task[15]: st.caption(f"**Director:** {task[15]}")
                         if len(task) > 16 and task[16]: st.caption(f"**Rating:** {'⭐' * int(task[16])}")
                         if len(task) > 5 and task[5]: st.caption(f"**Area:** {task[5]}")
-                        if task[6]: st.caption(f"**Resource:** {task[6]}")
+                        if task[6] and task[6] != 'None': st.caption(f"**Resource:** {task[6]}")
                         st.caption(f"Added: {task[7]}")
                         if task[8]: st.caption(f"**Completed:** {task[12]}")
                     with col2:
