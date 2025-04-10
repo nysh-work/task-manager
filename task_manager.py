@@ -682,8 +682,9 @@ def main():
         
         if audio_data and 'bytes' in audio_data:
             st.audio(audio_data['bytes'], format="audio/wav")
+
             if st.button("Save Voice Note"):
-                title = st.text_input("Note Title")
+                title = st.text_input("Note Title", key=f"voice_note_title_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 if title:
                     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
@@ -702,10 +703,10 @@ def main():
                     if st.button("Delete", key=f"delete_voice_note_{note[0]}"):
                         c.execute("DELETE FROM voice_notes WHERE id = ?", (note[0],))
                         conn.commit()
-                        st.experimental_rerun()
+                        st.rerun()
         
         audio_bytes = None
-        title = st.text_input("Note Title")
+        title = st.text_input("Note Title", key=f"voice_note_title_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
         
         if st.button("Start Recording"):
             try:
