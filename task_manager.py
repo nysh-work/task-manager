@@ -291,7 +291,7 @@ def main():
                 created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 # Include media metadata if category is Media
                 c.execute("INSERT INTO tasks (title, description, category, project, area, resource, created_at, due_date, priority, is_recurring, recurrence_pattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                              (title, description, category, project, area, resource, created_at, str(due_date), priority, 
+                              (title, description, category, project, area, resource, created_at, str(due_date), priority[1], 
                               1 if is_recurring else 0, recurrence_pattern if is_recurring else None))
                 conn.commit()
                 st.success(f"Task '{title}' added to {category}")
