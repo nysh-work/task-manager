@@ -523,6 +523,59 @@ def main():
             
     elif choice == "Statistics":
         st.subheader("Task Statistics")
+        st.caption("Visual analytics of your task management patterns.")
+        
+        # Get all tasks
+        tasks = c.execute("SELECT * FROM tasks").fetchall()
+        
+        if tasks:
+            # Prepare data for charts
+            df = pd.DataFrame(tasks, columns=["id", "title", "description", "category", "project", "area", "resource", 
+                                            "created_at", "due_date", "priority", "is_recurring", "recurrence_pattern", 
+                                            "completed", "media_type", "year", "director", "rating", "cover_url"])
+            
+            # Completion rate chart
+            completed_count = df["completed"].sum()
+            total_count = len(df)
+            completion_rate = (completed_count / total_count) * 100 if total_count > 0 else 0
+            
+            fig1 = px.pie(names=["Completed", "Pending"], 
+                         values=[completed_count, total_count - completed_count],
+                         title=f"Completion Rate: {completion_rate:.1f}%",
+                         color_discrete_sequence=["#4CAF50", "#F44336"])
+            st.plotly_chart(fig1, use_container_width=True)
+            
+            # Category distribution chart
+            category_counts = df["category"].value_counts()
+            fig2 = px.bar(category_counts, 
+                         x=category_counts.index, 
+                         y=category_counts.values,
+                         title="Tasks by Category",
+                         color=category_counts.index,
+                         labels={"x":"Category", "y":"Count"})
+            st.plotly_chart(fig2, use_container_width=True)
+            
+            # Priority breakdown chart
+            priority_counts = df["priority"].value_counts().sort_index()
+            priority_labels = {1:"High", 2:"Medium", 3:"Low"}
+            fig3 = px.pie(priority_counts, 
+                         names=priority_counts.index.map(priority_labels), 
+                         values=priority_counts.values,
+                         title="Tasks by Priority",
+                         color_discrete_sequence=["#F44336", "#FFC107", "#4CAF50"])
+            st.plotly_chart(fig3, use_container_width=True)
+            
+            # Overdue tasks
+            if 'due_date' in df.columns:
+                today = datetime.now().date()
+                df['due_date'] = pd.to_datetime(df['due_date']).dt.date
+                overdue_tasks = df[(df['completed'] == 0) & (df['due_date'] < today)]
+                
+                if not overdue_tasks.empty:
+                    st.warning(f"You have {len(overdue_tasks)} overdue tasks!")
+                    st.dataframe(overdue_tasks[["title", "category", "due_date", "priority"]].sort_values("due_date"))
+        else:
+            st.info("No tasks found to display statistics.")
         st.caption("View completion rates and task distribution by category.")
         
     elif choice == "Meetings":
