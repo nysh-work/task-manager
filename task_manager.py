@@ -674,7 +674,34 @@ def main():
                 
     elif choice == "Voice Notes":
         st.subheader("Voice Notes")
-        st.caption("Record and review quick voice memos.")
+        st.caption("Record and manage your voice memos.")
+        
+        # Voice recording functionality
+        audio_bytes = mic_recorder(start_prompt="Start recording", stop_prompt="Stop recording", key="recorder")
+        
+        if audio_bytes:
+            st.audio(audio_bytes, format="audio/wav")
+            if st.button("Save Voice Note"):
+                title = st.text_input("Note Title")
+                if title:
+                    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    c.execute("INSERT INTO voice_notes (title, audio_data, created_at) VALUES (?, ?, ?)",
+                              (title, audio_bytes, created_at))
+                    conn.commit()
+                    st.success("Voice note saved!")
+        
+        # Display existing voice notes
+        voice_notes = c.execute("SELECT id, title, created_at FROM voice_notes ORDER BY created_at DESC").fetchall()
+        if voice_notes:
+            st.subheader("Saved Voice Notes")
+            for note in voice_notes:
+                with st.expander(f"{note[1]} - {note[2]}"):
+                    audio_data = c.execute("SELECT audio_data FROM voice_notes WHERE id = ?", (note[0],)).fetchone()[0]
+                    st.audio(audio_data, format="audio/wav")
+                    if st.button("Delete", key=f"delete_{note[0]}"):
+                        c.execute("DELETE FROM voice_notes WHERE id = ?", (note[0],))
+                        conn.commit()
+                        st.experimental_rerun()
         
         audio_bytes = None
         title = st.text_input("Note Title")
